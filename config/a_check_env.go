@@ -26,6 +26,7 @@ var (
 
 	if len(messages) > 0 {
 		logrus.Errorf("Error encountered when checking those env vars ->>>>>> %v", strings.Join(messages, ", "))
-		panic("Error encountered when checking environmental variables")
+		// panic("Error encountered when checking environmental variables")
+		os.Exit(1)
 	}
 }
