@@ -3,8 +3,8 @@ package auth
 import (
 	"net/http"
 
+	"github.com/Ethiopian-Education/edu-auth-server.git/model"
 	"github.com/gin-gonic/gin"
-	"github.com/minilikmila/edu-auth-server.git/model"
 )
 
 func LoginHandler() gin.HandlerFunc{

@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
+	"github.com/Ethiopian-Education/edu-auth-server.git/api/routes"
+	"github.com/Ethiopian-Education/edu-auth-server.git/config"
+	_ "github.com/Ethiopian-Education/edu-auth-server.git/config"
 	"github.com/gin-gonic/gin"
-	"github.com/minilikmila/edu-auth-server.git/api/routes"
-	"github.com/minilikmila/edu-auth-server.git/config"
-	_ "github.com/minilikmila/edu-auth-server.git/config"
 	"github.com/sirupsen/logrus"
 )
 

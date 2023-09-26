@@ -1,4 +1,4 @@
-module github.com/minilikmila/edu-auth-server.git
+module github.com/Ethiopian-Education/edu-auth-server.git
 
 go 1.20
 

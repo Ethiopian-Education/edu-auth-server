@@ -1,8 +1,8 @@
 package routes
 
 import (
+	auth_handler "github.com/Ethiopian-Education/edu-auth-server.git/api/handlers/auth"
 	"github.com/gin-gonic/gin"
-	auth_handler "github.com/minilikmila/edu-auth-server.git/api/handlers/auth"
 )
 
 func addAuthRoutes(rg *gin.RouterGroup) {
