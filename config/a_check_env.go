@@ -19,7 +19,6 @@ var (
 	for _, val := range  envs {
 		if el, exist:= os.LookupEnv(val); (!exist || el == "") {
 			// env exist but its value is empty or it's not exist at all.
-			// m := fmt.Sprintf(`Error encountered when checking env vars ' %s ' not found`, val)
 			messages = append(messages,val )
 		}
 	}
