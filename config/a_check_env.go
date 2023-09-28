@@ -7,19 +7,22 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
+
 var (
-	envs []string
+	envs     []string
 	messages []string
 )
 
-  func init(){
+func init() {
+
 	godotenv.Load()
+
 	envs = []string{"PORT"}
 	// os.LookupEnv("key")
-	for _, val := range  envs {
-		if el, exist:= os.LookupEnv(val); (!exist || el == "") {
+	for _, val := range envs {
+		if el, exist := os.LookupEnv(val); !exist || el == "" {
 			// env exist but its value is empty or it's not exist at all.
-			messages = append(messages,val )
+			messages = append(messages, val)
 		}
 	}
 
