@@ -5,7 +5,9 @@ import (
 
 	jwt_jwt "github.com/Ethiopian-Education/edu-auth-server.git/crypto/jwt"
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
+	"github.com/Ethiopian-Education/edu-auth-server.git/utils/services"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func LoginHandler() gin.HandlerFunc {
@@ -32,6 +34,14 @@ func LoginHandler() gin.HandlerFunc {
 				Success: false,
 			})
 			return
+		}
+		var m_body = model.TwilioBody{
+			To:      "+251918492083",
+			Message: "Hello -- ",
+		}
+		err = services.TwilioSendSMS(m_body)
+		if err != nil {
+			logrus.Error("SOmething went wrong in twilio", err.Error())
 		}
 
 		ctx.JSON(http.StatusOK, model.Response{
