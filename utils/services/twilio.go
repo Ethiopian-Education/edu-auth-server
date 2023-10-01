@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/Ethiopian-Education/edu-auth-server.git/config"
@@ -22,13 +21,13 @@ func TwilioSendSMS(body model.TwilioBody) error {
 	params.SetFrom(config.TWILIO_PHONE_NUMBER)
 	params.SetBody(body.Message)
 
-	resp, err := client.Api.CreateMessage(params)
+	_, err := client.Api.CreateMessage(params)
 	if err != nil {
 		fmt.Println("Error sending SMS message: " + err.Error())
 		return err
 	} else {
-		response, _ := json.Marshal(*resp)
-		fmt.Println("Response: " + string(response))
+		// response, _ := json.Marshal(*resp)
+		fmt.Println("successful: ")
 	}
 	return nil
 }
