@@ -12,3 +12,8 @@ type TwilioBody struct {
 	Message string `json:"message"`
 	From    string `json:"from,omitemty"`
 }
+
+type ConfirmPhone struct {
+	PhoneNumber string `json:"phone_number"`
+	Code string `json:"code"`
+}
