@@ -25,15 +25,16 @@ type JWTClaims struct {
 	Exp          *jwt.NumericDate `json:"exp"`
 	Iat          *jwt.NumericDate `json:"iat"`
 	Issuer       string           `json:"iss"`
-	LoginMethod  string           `json:"login_method"`
+	// LoginMethod  string           `json:"login_method"`
+	SignUpMethod string `json:"signup_method"`
 	Nonce        string           `json:"nonce"`
-	Roles        []string         `json:"roles"`
+	// Roles        []string         `json:"roles"`
 	Scope        []string         `json:"scope,omitempty"`
 	Subject      string           `json:"sub"`
 	TokenType    string           `json:"token_type"`
-	First_name   string           `json:"given_name"`
+	First_name   string           `json:"first_name"`
 	Middle_name  string           `json:"middle_name"`
-	Last_name    string           `json:"family_name"`
+	Last_name    string           `json:"last_name"`
 	Gender       string           `json:"gender,omitempty"`
 	Phone_number string           `json:"phone_number,omitempty"`
 	Email        string           `json:"email"`
@@ -56,7 +57,7 @@ func Sign(claims *JWTClaims) (string, error) {
 	claims.Aud = "ethio-edu@gmail.com"
 	claims.Exp = exp_tt
 	claims.Iat = jwt.NewNumericDate(now)
-	claims.Issuer = "ethio-edu@gmail.com"
+	claims.Issuer = claims.Subject
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(key)
 	if err != nil {

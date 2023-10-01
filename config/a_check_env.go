@@ -17,7 +17,7 @@ func init() {
 
 	godotenv.Load()
 
-	envs = []string{"PORT"}
+	envs = []string{"PORT", "HASURA_GRAPHQL_ADMIN_SECRET"}
 	// os.LookupEnv("key")
 	for _, val := range envs {
 		if el, exist := os.LookupEnv(val); !exist || el == "" {

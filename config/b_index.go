@@ -21,6 +21,8 @@ var (
 	SMTP_HOST              string
 	SMTP_USERNAME          string
 	SMTP_PASSWORD          string
+	HASURA_GRAPHQL_ADMIN_SECRET string
+	HASURA_GRAPHQL_URL string
 )
 
 // Init function is invoked before main goroutine starts ... init functions are invoked based on the order they qued or based on their folder alphabetical orders
@@ -48,6 +50,10 @@ func init() {
 	SMTP_USERNAME = os.Getenv("SMTP_USERNAME")
 
 	SMTP_PASSWORD = os.Getenv("SMTP_PASSWORD")
+
+	HASURA_GRAPHQL_URL = os.Getenv("HASURA_GRAPHQL_URL")
+
+	HASURA_GRAPHQL_ADMIN_SECRET = os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET")
 
 	PRIVATE_KEY, PUBLIC_KEY, err = parser.ReadKeys("./private.pem", "./public.pem")
 	if err != nil {
