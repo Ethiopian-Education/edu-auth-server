@@ -10,4 +10,6 @@ func addAuthRoutes(rg *gin.RouterGroup) {
 
 	auth_.POST("/login", auth_handler.LoginHandler())
 	auth_.POST("/signup", auth_handler.SignUpHandler())
+	auth_.POST("/verify_phone", auth_handler.VerifyPhoneNumber())
+
 }
