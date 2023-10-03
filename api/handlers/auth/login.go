@@ -11,6 +11,7 @@ import (
 	jwt_jwt "github.com/Ethiopian-Education/edu-auth-server.git/crypto/jwt"
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils"
+	"github.com/Ethiopian-Education/edu-auth-server.git/utils/services"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -112,15 +113,15 @@ func Send2faAuthOTP(user model.User) error {
 	}
 	
 	// send opt via phone
-	// var m_body = model.TwilioBody{
-	// 	To:     strings.TrimSpace(user.PhoneNumber),
-	// 	Message: fmt.Sprintf(`%v - Is your 2FA authentication code and valid for only 20 minutes.`, generatedOTP),
-	// }
-	// err = services.TwilioSendSMS(m_body)
-	// if err != nil {
-	// 	logrus.Error("Something went wrong in twilio - ", err.Error())
-	// 	return err
-	// }
+	var m_body = model.TwilioBody{
+		To:     strings.TrimSpace(user.PhoneNumber),
+		Message: fmt.Sprintf(`%v - Is your 2FA authentication code and valid for only 20 minutes.`, generatedOTP),
+	}
+	err = services.TwilioSendSMS(m_body)
+	if err != nil {
+		logrus.Error("Something went wrong in twilio - ", err.Error())
+		return err
+	}
 
 	return nil
 }

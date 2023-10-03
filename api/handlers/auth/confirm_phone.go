@@ -27,7 +27,6 @@ func VerifyPhoneNumber() gin.HandlerFunc{
 			ctx.JSON(http.StatusBadRequest, model.Response{Message: "invalid_request", Success: false})
 			return
 		}
-		logrus.Info("body -- ", body)
 
 		// FInd user
         trim_phone := strings.TrimSpace(body.Input.Params.PhoneNumber)
@@ -48,15 +47,15 @@ func VerifyPhoneNumber() gin.HandlerFunc{
 			return
 		}
 
-		 isValid, err := utils.VerityOTP(user.ID, body.Input.Params.Code, "phone_verification")
+		 otp_result, err := utils.VerityOTP(user.ID, body.Input.Params.Code, "phone_verification")
 		 if err != nil {
 			logrus.Error("verify otp error", err)
 			ctx.JSON(http.StatusBadRequest, model.Response{Message: "request_can_not_be_processed", Success: false})
 			return
 		 }
 
-		 if !isValid {
-			ctx.JSON(http.StatusBadRequest, model.Response{Message: "invalid_otp_expired", Success: false})
+		 if !otp_result.IsValid {
+			ctx.JSON(http.StatusBadRequest, model.Response{Message: "invalid_otp_or_expired", Success: false})
 			return
 		 }
 
