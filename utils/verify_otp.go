@@ -8,11 +8,12 @@ import (
 
 	"github.com/Ethiopian-Education/edu-auth-server.git/config"
 	"github.com/Ethiopian-Education/edu-auth-server.git/graph"
+	"github.com/Ethiopian-Education/edu-auth-server.git/model"
 	"github.com/hasura/go-graphql-client"
 )
 type timestamptz string
 
-func VerityOTP(userId string, otp string, otp_type string) (bool,error) {
+func VerityOTP(userId string, otp string, otp_type string) (model.OTP,error) {
     var err error
 	
 	client := &http.Client{
@@ -30,28 +31,22 @@ func VerityOTP(userId string, otp string, otp_type string) (bool,error) {
 	query := fmt.Sprintf(`query {
 		user_otp(where: {%s}) {
 		  id
-		  created_at
 		  code
 		  is_valid
 		}
 	  }`, strings.Join(filters, ","))
 
 	res := struct {
-		UserOTP []struct {
-			ID string `json:"id" graphql:"id"`
-			Code string `json:"code" graphql:"code"`
-			CreatedAt string `json:"created_at" graphql:"created_at"`
-			IsValid bool `json:"is_valid" graphql:"is_valid"`
-		}`json:"user_otp" graphql:"user_otp"`
+		UserOTP []model.OTP `json:"user_otp" graphql:"user_otp"`
 	}{}
 
 	err = graph_client.Exec(context.Background(),query, &res, map[string]any{})
 	if err != nil {
-		return false, err
+		return model.OTP{}, err
 	}
 
 	if len(res.UserOTP) == 0 {
-		return false, nil
+		return model.OTP{}, nil
 	}
 
 	given_otp_data := res.UserOTP[0]
@@ -66,5 +61,5 @@ func VerityOTP(userId string, otp string, otp_type string) (bool,error) {
 
 	// logrus.Info("VALUE --- ", formatted_date_2 >= formatted_date_1)
 
-	return given_otp_data.IsValid, nil
+	return given_otp_data, nil
 }

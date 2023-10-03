@@ -43,3 +43,9 @@ type Login struct {
 	Username string `json:"username" graphql:"username"`
 	Password string `json:"password" graphql:"password"`
 }
+
+type Auth2FA struct {
+	PhoneNumber string `json:"phone_number"`
+	Code string `json:"code"`
+	Email string `json:"email"`
+}
