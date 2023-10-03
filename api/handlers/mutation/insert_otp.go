@@ -10,7 +10,11 @@ import (
 	"github.com/hasura/go-graphql-client"
 	"github.com/sirupsen/logrus"
 )
-type user_otp_insert_input model.OTP
+type user_otp_insert_input struct {
+	UserID string `json:"user_id"`
+	Code string `json:"code"`
+	Type string `json:"type"`
+}
 
 func InsertOTP(otp model.OTP) ( error) {
 
@@ -19,8 +23,6 @@ func InsertOTP(otp model.OTP) ( error) {
 		Code: otp.Code,
 		Type: otp.Type,
 	}
-
-	logrus.Info("otp creds ", otp_creds)
 
 	var mutation struct {
 		InsertUserOtpOne struct {ID string `json:"id" graphql:"id"`} `graphql:"insert_user_otp_one(object: $object)"`
