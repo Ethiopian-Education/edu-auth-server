@@ -20,15 +20,15 @@ type JWT struct {
 
 type JWTClaims struct {
 	// AllowedRoles []string `json:"allowed_roles,omitempty"`
+	// LoginMethod  string           `json:"login_method"`
+	// Roles        []string         `json:"roles"`
 	jwt.RegisteredClaims
 	Aud          string           `json:"aud"`
 	Exp          *jwt.NumericDate `json:"exp"`
 	Iat          *jwt.NumericDate `json:"iat"`
 	Issuer       string           `json:"iss"`
-	// LoginMethod  string           `json:"login_method"`
-	SignUpMethod string `json:"signup_method"`
+	SignUpMethod string           `json:"signup_method"`
 	Nonce        string           `json:"nonce"`
-	// Roles        []string         `json:"roles"`
 	Scope        []string         `json:"scope,omitempty"`
 	Subject      string           `json:"sub"`
 	TokenType    string           `json:"token_type"`

@@ -15,5 +15,5 @@ type TwilioBody struct {
 
 type ConfirmPhone struct {
 	PhoneNumber string `json:"phone_number"`
-	Code string `json:"code"`
+	Code        string `json:"code"`
 }
