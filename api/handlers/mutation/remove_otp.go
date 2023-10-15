@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
+// should be multiple
 func RemoveOTP(id string) error {
 	var mutation struct {
 		DeleteOTP struct {ID string `json:"id" graphql:"id"`} `graphql:"delete_user_otp_by_pk(id: $id)"`
