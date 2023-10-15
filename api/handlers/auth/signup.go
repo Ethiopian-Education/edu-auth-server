@@ -9,36 +9,40 @@ import (
 	"github.com/Ethiopian-Education/edu-auth-server.git/config"
 	"github.com/Ethiopian-Education/edu-auth-server.git/graph"
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
+	otp_types "github.com/Ethiopian-Education/edu-auth-server.git/model/enum"
+	auth_method "github.com/Ethiopian-Education/edu-auth-server.git/model/enum/auth_types"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils/services"
 	"github.com/gin-gonic/gin"
 	"github.com/hasura/go-graphql-client"
 	"github.com/sirupsen/logrus"
 )
+
 type user_users_insert_input struct {
-	Email                 *string      `json:"email" graphql:"email,omitempty"`
-	PhoneNumber           string      `json:"phone_number" graphql:"phone_number"`
-	FirstName             string      `json:"first_name" graphql:"first_name"`
-	MiddleName            string      `json:"middle_name" graphql:"middle_name"`
-	LastName              string      `json:"last_name" graphql:"last_name,omitempty"`
-	Username  string `json:"username,omitempty"`
-	Password string `json:"password"`
-	Gender string `json:"gender"`
-	SignupMethod string `json:"signup_method"`
-	OTPS struct {
+	Email        *string `json:"email" graphql:"email,omitempty"`
+	PhoneNumber  string  `json:"phone_number" graphql:"phone_number"`
+	FirstName    string  `json:"first_name" graphql:"first_name"`
+	MiddleName   string  `json:"middle_name" graphql:"middle_name"`
+	LastName     string  `json:"last_name" graphql:"last_name,omitempty"`
+	Username     string  `json:"username,omitempty"`
+	Password     string  `json:"password"`
+	Gender       string  `json:"gender"`
+	SignupMethod string  `json:"signup_method"`
+	OTPS         struct {
 		Data struct {
 			Code string `json:"code" graphql:"code"`
 			Type string `json:"type" graphql:"type"`
 		} `json:"data" graphql:"data"`
 	} `json:"otps" graphql:"otps"`
 }
+
 func SignUpHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var err error
 		var body struct {
 			Input struct {
 				Params model.Signup `json:"params"`
-			}`json:"input"`
+			} `json:"input"`
 		}
 
 		if err = ctx.BindJSON(&body); err != nil {
@@ -47,29 +51,38 @@ func SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		// logrus.Info("Sighup creds : ", body)
-
+		trim_phone := strings.TrimSpace(body.Input.Params.PhoneNumber)
+		// check Phone number validity ...
+		trim_phone, isValid := utils.ValidatePhone(trim_phone)
+		if !isValid {
+			ctx.JSON(http.StatusBadRequest, model.Response{Message: "invalid_phone_number", Success: false})
+			return
+		}
+		if body.Input.Params.Email != nil {
+			if !utils.ValidateEmail(strings.TrimSpace(*body.Input.Params.Email)) {
+				ctx.JSON(http.StatusInternalServerError, model.Response{Message: "bad_email_format", Success: false})
+			}
+		}
 		hasedPassword, err := utils.HashPassword(body.Input.Params.Password)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, model.Response{Message: "Bad request", Success: false})
 		}
-		trim_phone := strings.TrimSpace(body.Input.Params.PhoneNumber)
 
 		generated_opt := utils.GenerateOTP(6)
 		// logrus.Info("Generated otp : --- ", generated_opt)
 
 		object := user_users_insert_input{
-			FirstName: body.Input.Params.FirstName,
-			MiddleName: body.Input.Params.MiddleName,
-			LastName: body.Input.Params.LastName,
-			Email: body.Input.Params.Email,
-			Gender: body.Input.Params.Gender,
-			Password: hasedPassword,
-			PhoneNumber: trim_phone,
-			SignupMethod: "regular_signup",
+			FirstName:    body.Input.Params.FirstName,
+			MiddleName:   body.Input.Params.MiddleName,
+			LastName:     body.Input.Params.LastName,
+			Email:        body.Input.Params.Email,
+			Gender:       body.Input.Params.Gender,
+			Password:     hasedPassword,
+			PhoneNumber:  trim_phone,
+			SignupMethod: auth_method.RegularAuth,
 		}
 		object.OTPS.Data.Code = generated_opt
-		object.OTPS.Data.Type = "phone_verification"
+		object.OTPS.Data.Type = otp_types.PhoneVerification
 
 		var mutation struct {
 			InserUser model.User `graphql:"insert_user_user(object:$object)"`
@@ -86,18 +99,18 @@ func SignUpHandler() gin.HandlerFunc {
 
 		if err = graph_client.Mutate(context.Background(), &mutation, variables); err != nil {
 			logrus.Error("Mutation error : ", err.Error())
-			ctx.JSON(http.StatusBadRequest, model.Response{Message: "user_signup_mutation_error" , Success: false})
+			ctx.JSON(http.StatusBadRequest, model.Response{Message: "user_signup_mutation_error", Success: false})
 			return
 		}
 
 		// logrus.Infoln("User Added -- ", mutation.InserUser)
-		if mutation.InserUser.Email != nil {
+		if body.Input.Params.Email != nil {
 			logrus.Infoln("send otp via Email")
 		}
-		
+
 		// Send OTP via phone...
 		var m_body = model.TwilioBody{
-			To:     trim_phone,
+			To:      trim_phone,
 			Message: fmt.Sprintf(`%v - Is your confirmation code and valid for only 20 minutes, please confirm to activate your account.`, generated_opt),
 		}
 		err = services.TwilioSendSMS(m_body)

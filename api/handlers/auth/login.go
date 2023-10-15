@@ -18,13 +18,13 @@ import (
 
 func LoginHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-//  CURRENTLY WE USE PHONE_NUMBER TO LOGIN... IN THE RECENT FUTURE WE'LL UPGRADE THIS TO USE USERNAME, PHONE_NUMBER OR EMAIL AS USERS PREFERENCE
+		//  CURRENTLY WE USE PHONE_NUMBER TO LOGIN... IN THE RECENT FUTURE WE'LL UPGRADE THIS TO USE USERNAME, PHONE_NUMBER OR EMAIL AS USERS PREFERENCE
 		var err error
 
 		var body struct {
 			Input struct {
 				Params model.Login `json:"params"`
-			}`json:"input"`
+			} `json:"input"`
 		}
 
 		if err = ctx.BindJSON(&body); err != nil {
@@ -32,10 +32,13 @@ func LoginHandler() gin.HandlerFunc {
 			return
 		}
 
-		trim_phone := strings.TrimSpace(body.Input.Params.Username)
+		trim_username := strings.TrimSpace(body.Input.Params.Username)
+
+		filter_string := utils.NormalizeMultiLoginFilter(trim_username)
+		logrus.Infoln("Normalized results  --- ", filter_string)
 
 		filters := []string{
-			fmt.Sprintf(`phone_number:{_eq: "%s"}`, trim_phone),
+			filter_string,
 		}
 
 		user, err := queries.FindUser(filters)
@@ -56,8 +59,8 @@ func LoginHandler() gin.HandlerFunc {
 			ctx.JSON(http.StatusBadRequest, model.Response{Message: err.Error(), Success: false})
 			return
 		}
-	
-		// HERE CHECK IF THE USER ENABLE 2FA AUTHENTICATION 
+
+		// HERE CHECK IF THE USER ENABLE 2FA AUTHENTICATION
 		// ..... 'LL IMPLEMENT IN RECENT FUTURE
 		if user.Enable2FA {
 			err = Send2faAuthOTP(user)
@@ -66,7 +69,7 @@ func LoginHandler() gin.HandlerFunc {
 				ctx.JSON(http.StatusBadRequest, model.Response{Message: "2fa_error_encountered", Success: false})
 				return
 			}
-			ctx.JSON(http.StatusOK,gin.H{"message": "Authentication code sent via your phone number."})
+			ctx.JSON(http.StatusOK, gin.H{"message": "Authentication code sent via your phone number."})
 			return
 		}
 
@@ -86,13 +89,13 @@ func LoginHandler() gin.HandlerFunc {
 }
 
 func CheckUserValidity(user model.User) error {
-		if !user.Active {
-			return errors.New("disabled_or_inactive_account")
-		}
-		if((user.Email != nil && !user.IsEmailConfirmed) || (user.PhoneNumber != "" && !user.IsPhoneConfirmed)) {
-			return errors.New("unverified_account")
-		}
-		return nil
+	if !user.Active {
+		return errors.New("disabled_or_inactive_account")
+	}
+	if (user.Email != nil && !user.IsEmailConfirmed) || (user.PhoneNumber != "" && !user.IsPhoneConfirmed) {
+		return errors.New("unverified_account")
+	}
+	return nil
 }
 
 // SEND 2FA AUTH OTP - CODE
@@ -100,21 +103,21 @@ func Send2faAuthOTP(user model.User) error {
 	generatedOTP := utils.GenerateOTP(6)
 
 	// insert otp
-	otp_object := model.OTP {
+	otp_object := model.OTP{
 		UserID: user.ID,
-		Code: generatedOTP,
-		Type: "authentication",
+		Code:   generatedOTP,
+		Type:   "authentication",
 	}
-	
-	 err := mutations.InsertOTP(otp_object)
+
+	err := mutations.InsertOTP(otp_object)
 	if err != nil {
 		logrus.Error("Error on otp mutation", err)
 		return err
 	}
-	
+
 	// send opt via phone
 	var m_body = model.TwilioBody{
-		To:     strings.TrimSpace(user.PhoneNumber),
+		To:      strings.TrimSpace(user.PhoneNumber),
 		Message: fmt.Sprintf(`%v - Is your 2FA authentication code and valid for only 20 minutes.`, generatedOTP),
 	}
 	err = services.TwilioSendSMS(m_body)
@@ -131,36 +134,36 @@ func Send2faAuthOTP(user model.User) error {
 func BuildToken(user model.User) (string, error) {
 	allowed_roles := []string{"user"}
 	if len(user.UserRoles) > 0 {
-	   for _, val := range user.UserRoles {
-		   allowed_roles = append(allowed_roles, val.Role.Name)
-	   }
+		for _, val := range user.UserRoles {
+			allowed_roles = append(allowed_roles, val.Role.Name)
+		}
 	}
 
-   var claims = &jwt_jwt.JWTClaims{}
-   metadata := map[string]interface{}{
-	   "roles":           allowed_roles,
-	   "x-hasura-user-id": user.ID,
-   }
-   // set user specific claims data
-   var user_email string
-   if user.Email != nil {
-	   user_email = *user.Email
-   }
-   claims.Metadata = metadata
-   claims.Email = user_email
-   // claims.LoginMethod = "regular_login"
-   claims.TokenType = "access_token"
-   claims.Subject = user.ID
-   claims.First_name = user.FirstName
-   claims.Last_name = user.LastName
-   claims.Middle_name = user.MiddleName
-   claims.SignUpMethod = user.SignUpMethod
-   claims.Gender = user.Gender
+	var claims = &jwt_jwt.JWTClaims{}
+	metadata := map[string]interface{}{
+		"roles":            allowed_roles,
+		"x-hasura-user-id": user.ID,
+	}
+	// set user specific claims data
+	var user_email string
+	if user.Email != nil {
+		user_email = *user.Email
+	}
+	claims.Metadata = metadata
+	claims.Email = user_email
+	// claims.LoginMethod = "regular_login"
+	claims.TokenType = "access_token"
+	claims.Subject = user.ID
+	claims.First_name = user.FirstName
+	claims.Last_name = user.LastName
+	claims.Middle_name = user.MiddleName
+	claims.SignUpMethod = user.SignUpMethod
+	claims.Gender = user.Gender
 
-   // HERE SIGN THE TOKEN
-   accessToken, err := jwt_jwt.Sign(claims)
-   if err != nil {
-	return "", err
-   }
-   return accessToken, nil
+	// HERE SIGN THE TOKEN
+	accessToken, err := jwt_jwt.Sign(claims)
+	if err != nil {
+		return "", err
+	}
+	return accessToken, nil
 }

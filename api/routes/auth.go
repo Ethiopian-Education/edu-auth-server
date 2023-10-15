@@ -15,6 +15,6 @@ func addAuthRoutes(rg *gin.RouterGroup) {
 	auth_.POST("/forgot_password", auth_handler.ForgotPassword())
 	auth_.POST("/reset_password", auth_handler.ResetPassword())
 	auth_.POST("/update_password", auth_handler.UpdatePassword())
-	auth_.POST("/resend_opt", auth_handler.ResendOTP())
+	auth_.POST("/resend_otp", auth_handler.ResendOTP())
 
 }
