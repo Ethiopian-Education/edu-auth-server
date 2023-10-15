@@ -8,6 +8,7 @@ import (
 	mutations "github.com/Ethiopian-Education/edu-auth-server.git/api/handlers/mutation"
 	"github.com/Ethiopian-Education/edu-auth-server.git/api/handlers/queries"
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
+	otp_types "github.com/Ethiopian-Education/edu-auth-server.git/model/enum"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils/services"
 	"github.com/gin-gonic/gin"
@@ -55,7 +56,7 @@ func ForgotPassword() gin.HandlerFunc {
 		otp_object := model.OTP{
 			UserID: user.ID,
 			Code:   generatedOTP,
-			Type:   "forget",
+			Type:   otp_types.Forget,
 		}
 
 		err = mutations.InsertOTP(otp_object)

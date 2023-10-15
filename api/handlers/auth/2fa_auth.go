@@ -8,6 +8,7 @@ import (
 	mutations "github.com/Ethiopian-Education/edu-auth-server.git/api/handlers/mutation"
 	"github.com/Ethiopian-Education/edu-auth-server.git/api/handlers/queries"
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
+	otp_types "github.com/Ethiopian-Education/edu-auth-server.git/model/enum"
 	"github.com/Ethiopian-Education/edu-auth-server.git/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -48,7 +49,7 @@ func Authenticate2FA() gin.HandlerFunc{
 			return
 		}
 		// VERIFY OTP
-		otp_result, err := utils.VerityOTP(user.ID, body.Input.Params.Code, "authentication")
+		otp_result, err := utils.VerityOTP(user.ID, body.Input.Params.Code, otp_types.Authentication)
 		if err != nil {
 		   logrus.Error("verify otp error", err)
 		   ctx.JSON(http.StatusBadRequest, model.Response{Message: "request_can_not_be_processed", Success: false})
