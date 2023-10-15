@@ -11,17 +11,18 @@ import (
 	"github.com/Ethiopian-Education/edu-auth-server.git/model"
 	"github.com/hasura/go-graphql-client"
 )
+
 type timestamptz string
 
-func VerityOTP(userId string, otp string, otp_type string) (model.OTP,error) {
-    var err error
-	
+func VerityOTP(userId string, otp string, otp_type string) (model.OTP, error) {
+	var err error
+
 	client := &http.Client{
 		Transport: &graph.Transport{T: http.DefaultTransport},
 	}
 
 	graph_client := graphql.NewClient(config.HASURA_GRAPHQL_URL, client)
-	
+
 	filters := []string{
 		fmt.Sprintf(`code: {_eq: "%s"}`, otp),
 		fmt.Sprintf(`user_id: {_eq: "%s"}`, userId),
@@ -40,7 +41,7 @@ func VerityOTP(userId string, otp string, otp_type string) (model.OTP,error) {
 		UserOTP []model.OTP `json:"user_otp" graphql:"user_otp"`
 	}{}
 
-	err = graph_client.Exec(context.Background(),query, &res, map[string]any{})
+	err = graph_client.Exec(context.Background(), query, &res, map[string]any{})
 	if err != nil {
 		return model.OTP{}, err
 	}
