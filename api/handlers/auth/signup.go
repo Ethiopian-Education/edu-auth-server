@@ -29,7 +29,7 @@ type user_users_insert_input struct {
 	Gender       string  `json:"gender"`
 	SignupMethod string  `json:"signup_method"`
 	OTPS         struct {
-		Data struct {
+		Data []struct {
 			Code string `json:"code" graphql:"code"`
 			Type string `json:"type" graphql:"type"`
 		} `json:"data" graphql:"data"`
@@ -39,6 +39,9 @@ type user_users_insert_input struct {
 func SignUpHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var err error
+
+		var successMessage = model.Response{Message: "confirm_phone_number", Success: true}
+
 		var body struct {
 			Input struct {
 				Params model.Signup `json:"params"`
@@ -59,6 +62,7 @@ func SignUpHandler() gin.HandlerFunc {
 			return
 		}
 		if body.Input.Params.Email != nil {
+			logrus.Info("Params information : -- ", *body.Input.Params.Email)
 			if !utils.ValidateEmail(strings.TrimSpace(*body.Input.Params.Email)) {
 				ctx.JSON(http.StatusInternalServerError, model.Response{Message: "bad_email_format", Success: false})
 			}
@@ -81,11 +85,14 @@ func SignUpHandler() gin.HandlerFunc {
 			PhoneNumber:  trim_phone,
 			SignupMethod: auth_method.RegularAuth,
 		}
-		object.OTPS.Data.Code = generated_opt
-		object.OTPS.Data.Type = otp_types.PhoneVerification
+		object.OTPS.Data = append(object.OTPS.Data, struct{Code string "json:\"code\" graphql:\"code\""; Type string "json:\"type\" graphql:\"type\""}{Code: generated_opt, Type: otp_types.PhoneVerification})
+		// if body.Input.Params.Email != nil {
+		// 	generated_email_otp = utils.GenerateOTP(6)
+		// 	object.OTPS.Data = append(object.OTPS.Data, struct{Code string "json:\"code\" graphql:\"code\""; Type string "json:\"type\" graphql:\"type\""}{Code: generated_email_otp, Type: otp_types.EmailVerification})
+		// }
 
 		var mutation struct {
-			InserUser model.User `graphql:"insert_user_user(object:$object)"`
+			InsertUser model.User `graphql:"insert_user_user(object:$object)"`
 		}
 		variables := map[string]interface{}{
 			"object": object,
@@ -103,10 +110,14 @@ func SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		// logrus.Infoln("User Added -- ", mutation.InserUser)
-		if body.Input.Params.Email != nil {
-			logrus.Infoln("send otp via Email")
-		}
+		// // logrus.Infoln("User Added -- ", mutation.InsertUser)
+		// if body.Input.Params.Email != nil {
+		// 	logrus.Infoln("send otp via Email")
+		// 	if err = sendEmailConfirmation(mutation.InsertUser, generated_email_otp); err != nil {
+		// 		logrus.Error("Error encountered when send email-confirmation",err)
+		// 	}
+		// 	successMessage.Message = "confirm_phone_number_and_email"
+		// }
 
 		// Send OTP via phone...
 		var m_body = model.TwilioBody{
@@ -118,6 +129,29 @@ func SignUpHandler() gin.HandlerFunc {
 			logrus.Error("Something went wrong in twilio - ", err.Error())
 		}
 
-		ctx.JSON(http.StatusOK, model.Response{Message: fmt.Sprintf("Successful user id - %s", mutation.InserUser.ID), Success: true})
+		ctx.JSON(http.StatusOK, successMessage)
 	}
+}
+
+func sendEmailConfirmation(user model.User, code string) error {
+	
+	email_body_feed_data := map[string]string {
+		"name":  fmt.Sprintf(`%s %s`, user.FirstName, user.MiddleName),
+		"code": code,
+	}
+
+	body, err := services.ParseHtmlTemplate("./templates/email_confirmation.html", email_body_feed_data)
+	if err != nil {
+		logrus.Error("Error happened while parsing : - ", err)
+		panic(1)
+	}
+	// logrus.Info("returned body : - ", body)
+
+	to := []string{*user.Email}
+
+	if err = services.SendEmailMessage(to, "abemelekmila@gmail.com","Confirm your Email.", body); err != nil{
+		logrus.Error("Error happened while parsing : - ", err)
+		panic(1)
+	}
+	return nil
 }
