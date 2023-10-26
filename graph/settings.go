@@ -24,7 +24,7 @@ func (t *Transport) RoundTrip(req *http.Request)(*http.Response, error) {
 	return t.T.RoundTrip(req)
 }
 
-// customizable transporter...
+// customizable transporter... If there's a header that needed to be added or attached, so use this TRANSPORTER.
 
 type Header map[string]string
 
