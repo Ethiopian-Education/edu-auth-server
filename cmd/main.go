@@ -17,6 +17,9 @@ func main() {
 	port := fmt.Sprintf(":%s", config.PORT)
 	routes.InitRoutes(router)
 
+	// parseHtmlChecker()
+	
 	logrus.Infof("Server ...")
 	router.Run(port)
 }
+
