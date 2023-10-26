@@ -17,3 +17,7 @@ type ConfirmPhone struct {
 	PhoneNumber string `json:"phone_number"`
 	Code        string `json:"code"`
 }
+type ConfirmEmail struct {
+	Email string `json:"email"`
+	Code        string `json:"code"`
+}
